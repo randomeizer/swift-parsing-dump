@@ -74,7 +74,6 @@ final class ParsingDumpTests: XCTestCase {
     try emailParser.print(.init(username: "foo", server: "bar.com"), into: &input)
     XCTAssertEqual("foo@bar.com", input)
   }
-
   
   func testPartialEmailPrint() throws {
     let emailParser = ParsePrint(.memberwise(EmailAddress.init(username:server:))) {
@@ -93,6 +92,12 @@ final class ParsingDumpTests: XCTestCase {
     var input = "bar"[...]
     try parser.parse(&input)
     XCTAssertEqual("bar", input)
+  }
+  
+  func testFailedPrint() throws {
+    let parser = Not { "foo" }.dump()
+    var input = "foo"[...]
+    XCTAssertThrowsError(try parser.print((), into: &input))
   }
   
   func testParseMinimalFormat() throws {
@@ -142,5 +147,26 @@ final class ParsingDumpTests: XCTestCase {
     try emailParser.print(.init(username: "foo", server: "bar.com"), into: &input)
     XCTAssertEqual("foo@bar.com", input)
   }
-
+  
+  func testFormatting() throws {
+    let emailParser = Parse(EmailAddress.init(username:server:)) {
+      PrefixUpTo("@").map(.string)
+      "@"
+      Rest().map(.string)
+    }
+    
+    let _ = try emailParser.dump("email", maxDepth: 0, format: .minimal).parse("foo@bar")
+  }
+  
+  func testFailEmailParseAlt() throws {
+    let emailParser = Parse(EmailAddress.init(username:server:)) {
+      Prefix { $0 != "@" }.map(.string)
+      "@"
+      Rest().map(.string)
+    }
+    .dump()
+    
+    var input = "foo#bar.com"[...]
+    XCTAssertThrowsError(try emailParser.parse(&input))
+  }
 }

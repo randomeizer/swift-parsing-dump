@@ -20,7 +20,6 @@ public struct Dump<Upstream: Parser>: Parser
   public let upstream: Upstream
   
   public let label: String
-  public let indent: Int
   public let maxDepth: Int
   public let format: Format
   
@@ -28,14 +27,12 @@ public struct Dump<Upstream: Parser>: Parser
   ///
   /// - Parameters:
   ///   - label: The label to prefix the dump with. Defaults to `"DUMP"`.
-  ///   - indent: The amount of indentation. Defaults to `0`.
   ///   - maxDepth: The maximum depth to dump down to. Defaults `Int.max`.
   ///   - format: The level of detail to output. Defaults to `Dump.Format.inputOutput`
   @inlinable
-  public init(_ label: String = "DUMP", indent: Int = 0, maxDepth: Int = .max, format: Format = .inputOutput, @ParserBuilder _ build: () -> Upstream) {
+  public init(_ label: String = "DUMP", maxDepth: Int = .max, format: Format = .inputOutput, @ParserBuilder _ build: () -> Upstream) {
     self.upstream = build()
     self.label = label
-    self.indent = indent
     self.maxDepth = maxDepth
     self.format = format
   }
@@ -74,16 +71,18 @@ public struct Dump<Upstream: Parser>: Parser
   public func parse(_ input: inout Upstream.Input) throws -> Upstream.Output {
     #if DEBUG
     Swift.print("\(label): \(upstreamName)parse(\(inputName ?? "_")) -> \(outputName ?? "_")")
+    let original = input
     do {
-      let original = input
       let result = try upstream.parse(&input)
       Swift.print("input:")
       Swift.print(diff(original, input) ?? "<no change>")
       Swift.print("output:")
-      return customDump(result, indent: indent, maxDepth: maxDepth)
+      return customDump(result, maxDepth: maxDepth)
     } catch {
+      Swift.print("input:")
+      Swift.print(diff(original, input) ?? original)
       Swift.print("error:")
-      throw customDump(error, indent: indent, maxDepth: maxDepth)
+      throw customDump(error, maxDepth: maxDepth)
     }
     #else
     return try upstream.parse(&input)
@@ -98,15 +97,17 @@ extension Dump: ParserPrinter where Upstream: ParserPrinter {
     #if DEBUG
     Swift.print("\(label): \(upstreamName)print(\(outputName ?? "_"), into: \(inputName ?? "_"))")
     Swift.print("output:")
-    customDump(output, indent: indent, maxDepth: maxDepth)
+    customDump(output, maxDepth: maxDepth)
+    let original = input
     do {
-      let original = input
       try upstream.print(output, into: &input)
       Swift.print("input:")
       Swift.print(diff(original, input) ?? "<no change>")
     } catch  {
+      Swift.print("input:")
+      Swift.print(diff(original, input) ?? original)
       Swift.print("error:")
-      throw customDump(error, indent: indent, maxDepth: maxDepth)
+      throw customDump(error, maxDepth: maxDepth)
     }
     #else
     return try upstream.print(output, into: &input)
@@ -121,7 +122,7 @@ extension Parser {
   ///
   ///
   func dump(_ label: String = "DUMP", indent: Int = 0, maxDepth: Int = .max, format: Dump<Self>.Format = .inputOutput) -> Dump<Self> {
-    .init(label, indent: indent, maxDepth: maxDepth, format: format) {
+    .init(label, maxDepth: maxDepth, format: format) {
       self
     }
   }
