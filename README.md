@@ -6,6 +6,43 @@ A utility to aid in dumping debug information within a [swift-parsing](https://g
 
 This library makes it simple to dump the input and output of a `Parser` at any given stage.
 
+## Installation
+
+This can be added to a Swift Package via the `dependencies`:
+
+```swift
+// swift-tools-version: 5.6
+// The swift-tools-version declares the minimum version of Swift required to build this package.
+
+import PackageDescription
+
+let package = Package(
+  name: "my-cool-package",
+  // ...
+  dependencies: [
+    // Dependencies declare other packages that this package depends on.
+    .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.9.0"),
+    .package(url: "https://github.com/randomeizer/swift-parsing-dump", from: "0.1.0"),
+    // other dependencies...
+  ],
+  targets: [
+    .target(
+      name: "MyCoolPackage",
+      dependencies: [
+        .product(name: "Parsing", package: "swift-parsing"),
+        .product(name: "ParsingDump", package: "swift-parsing-dump"),
+      ]),
+    ),
+  ],
+)
+```
+
+You can then import it into any file via:
+
+```swift
+import ParsingDump
+```
+
 ## Usage
 
 There are two methods available:

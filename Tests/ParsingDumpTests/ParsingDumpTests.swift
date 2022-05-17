@@ -157,16 +157,4 @@ final class ParsingDumpTests: XCTestCase {
     
     let _ = try emailParser.dump("email", maxDepth: 0, format: .minimal).parse("foo@bar")
   }
-  
-  func testFailEmailParseAlt() throws {
-    let emailParser = Parse(EmailAddress.init(username:server:)) {
-      Prefix { $0 != "@" }.map(.string)
-      "@"
-      Rest().map(.string)
-    }
-    .dump()
-    
-    var input = "foo#bar.com"[...]
-    XCTAssertThrowsError(try emailParser.parse(&input))
-  }
 }
