@@ -2,7 +2,7 @@ import CustomDump
 import Foundation
 import Parsing
 
-/// Provides a way of dumping information about the current `Parser` context
+/// Provides a way of dumping information about the current ``Parser`` context
 /// when parsing or printing.
 public struct Dump<Upstream: Parser>: Parser
 {
@@ -27,8 +27,8 @@ public struct Dump<Upstream: Parser>: Parser
   ///
   /// - Parameters:
   ///   - label: The label to prefix the dump with. Defaults to `"DUMP"`.
-  ///   - maxDepth: The maximum depth to dump down to. Defaults `Int.max`.
-  ///   - format: The level of detail to output. Defaults to `Dump.Format.inputOutput`
+  ///   - maxDepth: The maximum depth to dump down to. Defaults ``Int.max``.
+  ///   - format: The level of detail to output. Defaults to ``Dump.Format.inputOutput``
   @inlinable
   public init(_ label: String = "DUMP", maxDepth: Int = .max, format: Format = .inputOutput, @ParserBuilder _ build: () -> Upstream) {
     self.upstream = build()
@@ -117,11 +117,16 @@ extension Dump: ParserPrinter where Upstream: ParserPrinter {
 
 
 extension Parser {
-  /// Transforms the `Parser` into a "dumping" parser. It will dump the input and output
+  /// Transforms the ``Parser`` into a "dumping" parser. It will dump the input and output
   /// (and error, if relevant) to standard output when executed in DEBUG mode.
   ///
+  /// - Parameters:
+  ///   - label: The label. Defaults to `"DUMP"`.
+  ///   - maxDepth: The maximum depth to dump for class/struct values. Defaults to ``Int.max``.
+  ///   - format: The ``Format`` to use. Defaults to ``Format#inputOutput``.
   ///
-  func dump(_ label: String = "DUMP", indent: Int = 0, maxDepth: Int = .max, format: Dump<Self>.Format = .inputOutput) -> Dump<Self> {
+  /// - Returns The ``Dump`` ``Parser``.
+  public func dump(_ label: String = "DUMP", maxDepth: Int = .max, format: Dump<Self>.Format = .inputOutput) -> Dump<Self> {
     .init(label, maxDepth: maxDepth, format: format) {
       self
     }
@@ -130,5 +135,5 @@ extension Parser {
 
 extension Parsers {
   /// The `Dump` parser type.
-  typealias Dump = ParsingDump.Dump
+  public typealias Dump = ParsingDump.Dump
 }
